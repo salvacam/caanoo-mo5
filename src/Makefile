@@ -1,0 +1,68 @@
+#
+# Copyright (C) 2006 Ludovic Jacomme (ludovic.jacomme@gmail.com)
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+MO5_VERSION=1.1.0
+
+TARGET = mo5.gpe
+SDL_CONFIG = $(CAANOOGPH)/bin/sdl-config
+OBJS = gp2x_psp.o \
+  psp_main.o psp_kbd.o psp_sdl.o psp_font.o \
+  psp_fmgr.o psp_menu.o  psp_menu_kbd.o psp_menu_set.o \
+  psp_menu_help.o psp_irkeyb.o psp_run.o \
+  global.o \
+  psp_irkeyb.o \
+  psp_sound.o \
+  psp_danzeff.o psp_mo5.o \
+  dc6809emul.o \
+  dcmo5devices.o \
+  dcmo5emulation.o \
+  dcmo5keyb.o \
+  dcmo5options.o \
+  dcmo5video.o
+
+CC=arm-gph-linux-gnueabi-gcc
+CXX=arm-gph-linux-gnueabi-g++
+STRIP=arm-gph-linux-gnueabi-strip
+
+DEFAULT_CFLAGS = $(shell $(SDL_CONFIG) --cflags)
+
+MORE_CFLAGS = -I. -I$(CAANOODEV)/include \
+-DNO_STDIO_REDIRECT  -DMO5_VERSION=\"$(MO5_VERSION)\" \
+-DCAANOO_MODE 
+
+CFLAGS = $(DEFAULT_CFLAGS) $(MORE_CFLAGS) -O2 -Wall -fsigned-char \
+    -funroll-loops -ffast-math -fomit-frame-pointer -fno-strength-reduce -finline-functions -fsigned-char
+
+LIBS += -Wl,-rpath,$(OPENCAANOO)/lib -L$(CAANOODEV)/lib -lSDL_image -lSDL -lpng -lz -lm -lpthread
+
+.c.o:
+	$(CC) $(CFLAGS) -c $< -o $@
+
+.cpp.o:
+	$(CXX) $(CFLAGS) -c $< -o $@
+
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(TARGET) && $(STRIP) $(TARGET)
+
+install: $(TARGET)
+	cp $< /media/usbdisk/game/mo5/
+
+clean:
+	rm -f $(OBJS) $(TARGET)
+
+ctags: 
+	ctags *[ch]
